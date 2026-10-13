@@ -11,16 +11,15 @@
 
 | Feature Area | Original Training Project | Enhanced Internship Project |
 | :--- | :--- | :--- |
-| **Movie Browsing** | Basic list view with title and basic search. | Full search by title/cast/description, interactive genre & language filtering, and a dedicated **Movie Detail** page (`movie_detail`). |
-| **Theatres & Showtimes** | Minimal list of showtimes. | Rich showtime cards with screen location, price tiers, amenities badges, and responsive layout. |
-| **Seat Selection** | Static checkboxes without live subtotal or tier pricing. | **Interactive React.js Seat Map** with real-time price calculator (VIP, Premium, Standard tiers), visual cinema screen curve, responsive mobile support, and server validation. |
-| **Booking Flow** | Abruptly booked seats on checkbox POST and redirected to profile. | **Full 6-Step Flow**: Movie Selection &rarr; Theatre/Showtime &rarr; Interactive Seat Selection &rarr; Itemized Booking Summary &rarr; Payment Simulation Sandbox &rarr; Verified Confirmation Ticket. |
-| **Payment Simulation** | Completely missing. | Interactive payment sandbox with Credit Card, UPI / QR, Net Banking, and BookMySeat Wallet simulation, supporting both **Success** and **Failure / Cancellation** outcomes. |
-| **Concurrency & Security** | Prone to race conditions and duplicate bookings. | Secured with `transaction.atomic()` and row-level locking (`select_for_update()`), preventing duplicate seat bookings. Strict user authorization checks prevent unauthorized ticket inspection. |
-| **Booking History** | Displayed unlinked individual seat rows. | Cohesive grouped orders by unique `booking_reference`, showing status badges, total amount, ticket view/print, and cancellation capability. |
-| **REST APIs** | None. | Full **Django REST Framework (DRF)** endpoints for movies, theatres, seats, price calculator, and user bookings under `/movies/api/`. |
-| **Frontend Framework** | Bootstrap 4 + jQuery. | Preserved existing templates and introduced **React.js 18** embedded component for dynamic seat management without breaking SSR architecture. |
-| **Database & Production** | Hardcoded Render database URL in source code. | 12-factor compliant: reads `DATABASE_URL` dynamically from environment with clean fallback to local SQLite; WhiteNoise static file serving; PostgreSQL ready. |
+| **Movie Discovery & Recommendations** | Basic list view with title and basic search. | Multi-criteria search by title/cast/synopsis, dynamic filter badges (city, genre, language, theatre, rating), sorting, and personalized recommendation engine. |
+| **PDF Tickets & Celery Email** | Simple HTML confirmation; no PDF or email. | Dynamic ReportLab PDF ticket with cryptographic HMAC QR verification, async Celery email delivery with PDF attachment and eager local fallback. |
+| **Movie Management, Trailers & Reviews** | Static movie model without reviews, trailer, or age ratings. | YouTube trailer embeds, age certifications (U/UA/A), multi-poster gallery, and verified-buyer user review/rating system with dynamic aggregates. |
+| **Payment Gateway Integration** | Basic simulation placeholder. | Full Razorpay API integration with HMAC-SHA256 webhook signature verification, replay protection, and automated refund processing. |
+| **Live Seat Availability & Concurrency** | Basic checkbox booking prone to race conditions. | 2-minute temporary seat hold timer, row-level locking (`select_for_update`), atomic reservations, and real-time seat status polling API. |
+| **Admin Dashboard & Analytics** | Default Django admin only. | Comprehensive business analytics dashboard (12 SQL-aggregated KPIs, occupancy tracking, hourly peak heatmap) with formula-injection-safe CSV export. |
+| **REST APIs** | None. | Full **Django REST Framework (DRF)** endpoints for movies, theatres, seats, reviews, holds, and bookings under `/movies/api/`. |
+| **Concurrency & Security** | Prone to race conditions. | Secured with `transaction.atomic()` and row-level locking (`select_for_update()`), preventing duplicate seat bookings. Strict user authorization checks. |
+| **Frontend Architecture** | Bootstrap 4 + jQuery. | Preserved existing templates and introduced interactive **React.js 18** seat selector with real-time subtotal calculation. |
 
 ---
 

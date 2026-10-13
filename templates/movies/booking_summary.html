@@ -21,6 +21,15 @@
             <span><i class="far fa-circle mr-1"></i> 4. Payment</span>
             <span><i class="far fa-circle mr-1"></i> 5. Confirmation</span>
         </div>
+    <!-- 2-Minute Reservation Hold Timer Alert -->
+    <div class="alert alert-warning border-warning shadow-sm d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <i class="fas fa-stopwatch text-danger fa-lg mr-2"></i>
+            <strong>Temporary Hold Active:</strong> Your selected seats are locked exclusively for you. Please complete payment before the timer expires.
+        </div>
+        <div class="font-weight-bold text-danger h5 mb-0 px-3 py-1 bg-white rounded border">
+            <i class="far fa-clock mr-1"></i> <span id="holdTimerDisplay">02:00</span>
+        </div>
     </div>
 
     <div class="row">
@@ -127,6 +136,29 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let secondsLeft = {{ remaining_seconds|default:120 }};
+        const display = document.getElementById("holdTimerDisplay");
+
+        function updateTimer() {
+            if (secondsLeft <= 0) {
+                display.innerText = "EXPIRED";
+                alert("Your 2-minute seat reservation has expired. Please select your seats again.");
+                window.location.href = "{% url 'book_seats' theater.id %}";
+                return;
+            }
+            const mins = Math.floor(secondsLeft / 60);
+            const secs = secondsLeft % 60;
+            display.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            secondsLeft--;
+        }
+
+        updateTimer();
+        setInterval(updateTimer, 1000);
+    });
+</script>
 
 <style>
     .badge-danger {

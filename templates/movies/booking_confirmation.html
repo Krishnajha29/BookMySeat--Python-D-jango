@@ -97,14 +97,22 @@
                 </div>
             </div>
 
-            <!-- Print / Navigation Buttons -->
-            <div class="d-flex justify-content-between align-items-center mb-5">
-                <a href="{% url 'profile' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-user mr-1"></i> View All Bookings
+            <!-- Print / Download / Navigation Buttons -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-5">
+                <a href="{% url 'profile' %}" class="btn btn-outline-secondary mb-2 mb-sm-0">
+                    <i class="fas fa-arrow-left mr-1"></i> My Bookings
                 </a>
-                <button type="button" onclick="window.print();" class="btn btn-danger px-4 shadow font-weight-bold">
-                    <i class="fas fa-print mr-1"></i> Print / Save Ticket
-                </button>
+                <div>
+                    <a href="{% url 'download_ticket_pdf' booking_reference %}" class="btn btn-success px-3 shadow font-weight-bold mr-2 mb-2 mb-sm-0">
+                        <i class="fas fa-file-pdf mr-1"></i> Download PDF Ticket
+                    </a>
+                    <a href="{% url 'verify_ticket_qr' verification_token %}" target="_blank" class="btn btn-outline-info px-3 font-weight-bold mr-2 mb-2 mb-sm-0">
+                        <i class="fas fa-qrcode mr-1"></i> Test Gate QR Scan
+                    </a>
+                    <button type="button" onclick="window.print();" class="btn btn-danger px-3 shadow font-weight-bold mb-2 mb-sm-0">
+                        <i class="fas fa-print mr-1"></i> Print Ticket
+                    </button>
+                </div>
             </div>
         </div>
     </div>

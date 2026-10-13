@@ -1,0 +1,244 @@
+{% extends "users/basic.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-3 mb-4">
+        <div>
+            <h2 class="font-weight-bold text-dark mb-1">
+                <i class="fas fa-chart-line text-danger mr-2"></i> Business Analytics & Admin Dashboard
+            </h2>
+            <p class="text-muted mb-0">High-performance revenue metrics, occupancy stats, and moderation center (Optimized for 100k+ records).</p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <a href="{% url 'export_analytics_csv' %}?start_date={{ start_date_str }}&end_date={{ end_date_str }}" class="btn btn-success shadow-sm">
+                <i class="fas fa-file-csv mr-1"></i> Export Sanitized CSV Report
+            </a>
+            <a href="/admin/" class="btn btn-outline-dark ml-2 shadow-sm" target="_blank">
+                <i class="fas fa-cog mr-1"></i> Django Admin
+            </a>
+        </div>
+    </div>
+
+    <!-- Date Range Filter Form -->
+    <div class="card border-0 shadow-sm p-3 mb-4 bg-light">
+        <form method="GET" class="form-inline d-flex flex-wrap align-items-center">
+            <span class="font-weight-bold text-secondary mr-3"><i class="far fa-calendar-alt mr-1"></i> Date Filter:</span>
+            <div class="form-group mr-3 mb-2 mb-sm-0">
+                <label class="mr-2 small font-weight-bold text-muted">From:</label>
+                <input type="date" name="start_date" value="{{ start_date_str }}" class="form-control form-control-sm">
+            </div>
+            <div class="form-group mr-3 mb-2 mb-sm-0">
+                <label class="mr-2 small font-weight-bold text-muted">To:</label>
+                <input type="date" name="end_date" value="{{ end_date_str }}" class="form-control form-control-sm">
+            </div>
+            <button type="submit" class="btn btn-danger btn-sm px-3 shadow-sm mr-2">Apply Filter</button>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary btn-sm">Reset</a>
+        </form>
+    </div>
+
+    <!-- KPI Cards Row -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm p-3 h-100 bg-white border-left-danger">
+                <small class="text-muted font-weight-bold text-uppercase">Gross Revenue</small>
+                <h3 class="font-weight-bold text-dark mt-2 mb-1">₹{{ analytics.gross_revenue|floatformat:2 }}</h3>
+                <small class="text-success"><i class="fas fa-check-circle mr-1"></i> Verified completed orders</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm p-3 h-100 bg-white border-left-success">
+                <small class="text-muted font-weight-bold text-uppercase">Net Revenue</small>
+                <h3 class="font-weight-bold text-success mt-2 mb-1">₹{{ analytics.net_revenue|floatformat:2 }}</h3>
+                <small class="text-muted">After ₹{{ analytics.total_refunded|floatformat:2 }} refunds</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm p-3 h-100 bg-white border-left-primary">
+                <small class="text-muted font-weight-bold text-uppercase">Total Bookings</small>
+                <h3 class="font-weight-bold text-primary mt-2 mb-1">{{ analytics.total_bookings_count }}</h3>
+                <small class="text-muted">{{ analytics.cancellation_count }} cancelled ({{ analytics.cancellation_rate }}%)</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm p-3 h-100 bg-white border-left-warning">
+                <small class="text-muted font-weight-bold text-uppercase">Registered Users</small>
+                <h3 class="font-weight-bold text-dark mt-2 mb-1">{{ analytics.total_users_count }}</h3>
+                <small class="text-info"><i class="fas fa-user-plus mr-1"></i> Active user base</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Multi-Period Revenue Breakdown Tables -->
+    <div class="row mb-4">
+        <!-- Daily Revenue -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white font-weight-bold border-bottom">
+                    <i class="fas fa-calendar-day text-danger mr-1"></i> Daily Revenue Breakdown
+                </div>
+                <div class="card-body p-0 table-responsive">
+                    <table class="table table-hover table-striped mb-0 small">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th class="text-right">Tickets</th>
+                                <th class="text-right">Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for d in analytics.rev_by_day %}
+                            <tr>
+                                <td>{{ d.period|date:"Y-m-d (D)" }}</td>
+                                <td class="text-right">{{ d.count }}</td>
+                                <td class="text-right font-weight-bold text-dark">₹{{ d.total|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted py-3">No revenue recorded in this period</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly & Monthly Revenue -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white font-weight-bold border-bottom">
+                    <i class="fas fa-calendar-week text-primary mr-1"></i> Weekly & Monthly Aggregates
+                </div>
+                <div class="card-body p-0 table-responsive">
+                    <table class="table table-hover table-striped mb-0 small">
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th class="text-right">Orders</th>
+                                <th class="text-right">Total Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in analytics.rev_by_month %}
+                            <tr>
+                                <td><strong>{{ m.period|date:"F Y" }}</strong></td>
+                                <td class="text-right">{{ m.count }}</td>
+                                <td class="text-right font-weight-bold text-success">₹{{ m.total|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted py-3">No data recorded</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Occupancy & Top Movies/Theatres -->
+    <div class="row mb-4">
+        <!-- Theatre Occupancy Percentages -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white font-weight-bold border-bottom">
+                    <i class="fas fa-chair text-info mr-1"></i> Theatre Occupancy Percentages
+                </div>
+                <div class="card-body p-3">
+                    {% for occ in analytics.theatre_occupancies %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small font-weight-bold mb-1">
+                            <span>{{ occ.theater }} ({{ occ.city }})</span>
+                            <span>{{ occ.booked }}/{{ occ.capacity }} seats ({{ occ.occupancy_pct }}%)</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar {% if occ.occupancy_pct > 70 %}bg-danger{% elif occ.occupancy_pct > 30 %}bg-warning{% else %}bg-success{% endif %}" role="progressbar" style="width: {{ occ.occupancy_pct }}%"></div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted small mb-0">No active theatre schedules in this filter window.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Performing Movies -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white font-weight-bold border-bottom">
+                    <i class="fas fa-trophy text-warning mr-1"></i> Top-Performing Blockbusters
+                </div>
+                <div class="card-body p-0 table-responsive">
+                    <table class="table table-hover mb-0 small">
+                        <thead>
+                            <tr>
+                                <th>Movie</th>
+                                <th>Tickets Sold</th>
+                                <th class="text-right">Gross Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in analytics.most_booked_movies %}
+                            <tr>
+                                <td class="font-weight-bold text-dark">{{ m.name }}</td>
+                                <td>{{ m.tickets_sold }}</td>
+                                <td class="text-right font-weight-bold text-danger">₹{{ m.revenue|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted py-3">No bookings in selected range</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Moderation Queue -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-dark text-white font-weight-bold d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-shield-alt text-warning mr-2"></i> Reported Reviews Moderation Queue</span>
+            <span class="badge badge-warning">{{ reported_reviews|length }} Flagged</span>
+        </div>
+        <div class="card-body p-0 table-responsive">
+            <table class="table table-hover mb-0 small">
+                <thead>
+                    <tr>
+                        <th>Movie</th>
+                        <th>User</th>
+                        <th>Rating</th>
+                        <th>Comment</th>
+                        <th>Report Reason</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in reported_reviews %}
+                    <tr>
+                        <td class="font-weight-bold">{{ r.movie.name }}</td>
+                        <td>{{ r.user.username }}</td>
+                        <td><span class="badge badge-warning">{{ r.rating }}/10</span></td>
+                        <td>{{ r.comment }}</td>
+                        <td class="text-danger"><em>{{ r.report_reason|default:"Inappropriate content" }}</em></td>
+                        <td>
+                            <form method="POST" action="{% url 'moderate_review' r.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" name="action" value="approve" class="btn btn-success btn-sm px-2 py-0">Approve</button>
+                                <button type="submit" name="action" value="hide" class="btn btn-danger btn-sm px-2 py-0">Hide</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center text-success py-3"><i class="fas fa-check-circle mr-1"></i> All reviews are moderated. No pending flags!</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .border-left-danger { border-left: 4px solid #f84464 !important; }
+    .border-left-success { border-left: 4px solid #10b981 !important; }
+    .border-left-primary { border-left: 4px solid #3b82f6 !important; }
+    .border-left-warning { border-left: 4px solid #f59e0b !important; }
+</style>
+{% endblock %}

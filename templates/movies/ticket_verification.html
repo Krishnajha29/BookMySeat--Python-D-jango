@@ -1,0 +1,70 @@
+{% extends "users/basic.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-lg rounded-lg overflow-hidden text-center">
+                {% if result.valid %}
+                <div class="bg-success text-white p-4">
+                    <i class="fas fa-check-circle fa-4x mb-2"></i>
+                    <h3 class="font-weight-bold mb-0">Ticket Verified!</h3>
+                    <small class="text-uppercase tracking-wider">Official BookMySeat Digital Pass</small>
+                </div>
+                <div class="card-body p-4 text-left">
+                    <div class="border-bottom pb-3 mb-3">
+                        <small class="text-muted d-block">Booking Reference</small>
+                        <h4 class="font-weight-bold text-danger mb-0">{{ result.booking_reference }}</h4>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Movie</small>
+                        <h5 class="font-weight-bold text-dark mb-0">{{ result.movie }}</h5>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <small class="text-muted d-block">Theatre & Screen</small>
+                            <span class="font-weight-bold text-secondary">{{ result.theater }} ({{ result.screen }})</span>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">City</small>
+                            <span class="font-weight-bold text-secondary">{{ result.city }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Showtime</small>
+                        <span class="font-weight-bold text-primary">{{ result.time|date:"l, F d, Y - h:i A" }}</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Seats ({{ result.seats|length }})</small>
+                        <div class="mt-1">
+                            {% for s in result.seats %}
+                            <span class="badge badge-danger p-2 mr-1 font-weight-normal">{{ s }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="alert alert-light border small text-muted mb-0">
+                        <i class="fas fa-user-check text-success mr-1"></i>
+                        Booked by <strong>{{ result.booked_by }}</strong> &bull; Status: <strong>{{ result.payment_status }}</strong>
+                    </div>
+                </div>
+                {% else %}
+                <div class="bg-danger text-white p-4">
+                    <i class="fas fa-times-circle fa-4x mb-2"></i>
+                    <h3 class="font-weight-bold mb-0">Verification Failed</h3>
+                    <small class="text-uppercase tracking-wider">Invalid or Tampered QR Code</small>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted mb-3">{{ result.error|default:"This ticket could not be validated against the booking database." }}</p>
+                    <a href="{% url 'home' %}" class="btn btn-outline-secondary">Return to Home</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

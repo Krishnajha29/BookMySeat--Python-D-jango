@@ -2,82 +2,135 @@
 
 {% block content %}
 <div class="container py-3">
-    <!-- Header & Search -->
+    <!-- Header -->
     <div class="text-center mb-4">
         <h1 class="font-weight-bold text-dark">Explore Movies</h1>
-        <p class="text-muted">Browse top-rated blockbusters, filter by your favorite genre or language, and book seats instantly.</p>
+        <p class="text-muted">Browse blockbuster releases, filter by city, theatre, genre, language, or ratings.</p>
     </div>
 
-    <!-- Search Form -->
-    <div class="row justify-content-center mb-4">
-        <div class="col-lg-8">
-            <form method="GET" action="{% url 'movie_list' %}" class="shadow-sm rounded">
-                <div class="input-group">
-                    <input
-                        class="form-control form-control-lg border-right-0"
-                        name="search"
-                        placeholder="Search movies by title, cast or description..."
-                        type="text"
-                        value="{{ search_query|default_if_none:'' }}"
-                        aria-label="Search for movies"
-                    />
-                    {% if selected_genre %}
-                    <input type="hidden" name="genre" value="{{ selected_genre }}">
-                    {% endif %}
-                    {% if selected_language %}
-                    <input type="hidden" name="language" value="{{ selected_language }}">
-                    {% endif %}
-                    <div class="input-group-append">
-                        <button class="btn btn-danger px-4" type="submit">
-                            <i class="fas fa-search me-1"></i> Search
-                        </button>
-                    </div>
+    <!-- Search & Filter Bar -->
+    <div class="card border-0 shadow-sm p-3 mb-4 bg-light">
+        <form method="GET" action="{% url 'movie_list' %}" id="filterForm">
+            <!-- Search Input -->
+            <div class="input-group mb-3">
+                <input
+                    class="form-control form-control-lg border-right-0"
+                    name="search"
+                    placeholder="Search movies by title, cast or description..."
+                    type="text"
+                    value="{{ search_query|default_if_none:'' }}"
+                    aria-label="Search for movies"
+                />
+                <div class="input-group-append">
+                    <button class="btn btn-danger px-4" type="submit">
+                        <i class="fas fa-search me-1"></i> Search
+                    </button>
                 </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Filter Bar: Genre & Language -->
-    <div class="card border-0 bg-light shadow-sm p-3 mb-4">
-        <div class="row align-items-center">
-            <!-- Genre Filters -->
-            <div class="col-md-7 mb-2 mb-md-0">
-                <span class="font-weight-bold text-secondary mr-2"><i class="fas fa-tags me-1"></i> Genre:</span>
-                <a href="?search={{ search_query }}&language={{ selected_language }}"
-                   class="badge badge-pill {% if not selected_genre %}badge-danger{% else %}badge-light text-dark border{% endif %} p-2 mr-1">
-                   All
-                </a>
-                {% for g in all_genres %}
-                <a href="?search={{ search_query }}&genre={{ g }}&language={{ selected_language }}"
-                   class="badge badge-pill {% if selected_genre == g %}badge-danger{% else %}badge-light text-dark border{% endif %} p-2 mr-1">
-                   {{ g }}
-                </a>
-                {% endfor %}
             </div>
 
-            <!-- Language Filters -->
-            <div class="col-md-5 text-md-right">
-                <span class="font-weight-bold text-secondary mr-2"><i class="fas fa-language me-1"></i> Language:</span>
-                <a href="?search={{ search_query }}&genre={{ selected_genre }}"
-                   class="badge badge-pill {% if not selected_language %}badge-danger{% else %}badge-light text-dark border{% endif %} p-2 mr-1">
-                   All
-                </a>
-                {% for l in all_languages %}
-                <a href="?search={{ search_query }}&genre={{ selected_genre }}&language={{ l }}"
-                   class="badge badge-pill {% if selected_language == l %}badge-danger{% else %}badge-light text-dark border{% endif %} p-2 mr-1">
-                   {{ l }}
-                </a>
-                {% endfor %}
+            <!-- Filter Controls Row -->
+            <div class="row align-items-center">
+                <!-- City Filter -->
+                <div class="col-md-3 col-sm-6 mb-2">
+                    <label class="small font-weight-bold text-secondary mb-1"><i class="fas fa-map-marker-alt text-danger mr-1"></i> City:</label>
+                    <select name="city" class="form-control form-control-sm" onchange="document.getElementById('filterForm').submit();">
+                        <option value="">All Cities</option>
+                        {% for c in all_cities %}
+                        <option value="{{ c }}" {% if selected_city == c %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Genre Filter -->
+                <div class="col-md-3 col-sm-6 mb-2">
+                    <label class="small font-weight-bold text-secondary mb-1"><i class="fas fa-tags text-danger mr-1"></i> Genre:</label>
+                    <select name="genre" class="form-control form-control-sm" onchange="document.getElementById('filterForm').submit();">
+                        <option value="">All Genres</option>
+                        {% for g in all_genres %}
+                        <option value="{{ g }}" {% if selected_genre == g %}selected{% endif %}>{{ g }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Language Filter -->
+                <div class="col-md-3 col-sm-6 mb-2">
+                    <label class="small font-weight-bold text-secondary mb-1"><i class="fas fa-language text-danger mr-1"></i> Language:</label>
+                    <select name="language" class="form-control form-control-sm" onchange="document.getElementById('filterForm').submit();">
+                        <option value="">All Languages</option>
+                        {% for l in all_languages %}
+                        <option value="{{ l }}" {% if selected_language == l %}selected{% endif %}>{{ l }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Sort Filter -->
+                <div class="col-md-3 col-sm-6 mb-2">
+                    <label class="small font-weight-bold text-secondary mb-1"><i class="fas fa-sort-amount-down text-danger mr-1"></i> Sort By:</label>
+                    <select name="sort" class="form-control form-control-sm" onchange="document.getElementById('filterForm').submit();">
+                        <option value="popularity" {% if selected_sort == 'popularity' %}selected{% endif %}>Most Popular (Bookings)</option>
+                        <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>Newest Releases</option>
+                        <option value="rating" {% if selected_sort == 'rating' %}selected{% endif %}>Highest Rating</option>
+                        <option value="price_low" {% if selected_sort == 'price_low' %}selected{% endif %}>Ticket Price (Low to High)</option>
+                        <option value="price_high" {% if selected_sort == 'price_high' %}selected{% endif %}>Ticket Price (High to Low)</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        {% if search_query or selected_genre or selected_language %}
-        <div class="mt-2 text-right">
-            <a href="{% url 'movie_list' %}" class="small text-danger"><i class="fas fa-times-circle"></i> Clear All Filters</a>
-        </div>
-        {% endif %}
+
+            <!-- Dynamic Result Counts & Reset -->
+            <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                <span class="small font-weight-bold text-secondary">
+                    Showing <span class="text-danger font-weight-bold">{{ result_count }}</span> of {{ total_unfiltered_count }} movies
+                </span>
+                {% if search_query or selected_genre or selected_language or selected_city or selected_sort != 'popularity' %}
+                <a href="{% url 'movie_list' %}" class="small text-danger font-weight-bold">
+                    <i class="fas fa-times-circle mr-1"></i> Reset Filters
+                </a>
+                {% endif %}
+            </div>
+        </form>
     </div>
 
-    <!-- Movie Grid -->
+    <!-- Personalized Recommendations Section -->
+    {% if recommended_movies %}
+    <div class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="font-weight-bold text-dark mb-0">
+                <i class="fas fa-heart text-danger mr-2"></i> Recommended for You
+            </h4>
+            <small class="text-muted">Based on your viewing interests and taste</small>
+        </div>
+        <div class="row">
+            {% for rec in recommended_movies %}
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card h-100 border-0 shadow-sm movie-card">
+                    <a href="{% url 'movie_detail' rec.id %}" class="text-decoration-none">
+                        <div class="position-relative">
+                            {% if rec.image %}
+                            <img src="{{ rec.image.url }}" class="card-img-top" alt="{{ rec.name }}" style="height: 220px; object-fit: cover;">
+                            {% else %}
+                            <div class="bg-dark text-white d-flex align-items-center justify-content-center" style="height: 220px;">
+                                <i class="fas fa-film fa-2x"></i>
+                            </div>
+                            {% endif %}
+                            <span class="badge badge-dark position-absolute" style="top: 8px; right: 8px;">
+                                <i class="fas fa-star text-warning"></i> {{ rec.rating }}
+                            </span>
+                        </div>
+                        <div class="card-body p-2 text-center">
+                            <h6 class="font-weight-bold text-dark text-truncate mb-0">{{ rec.name }}</h6>
+                            <small class="text-muted">{{ rec.genre }} &bull; {{ rec.language }}</small>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <hr>
+    </div>
+    {% endif %}
+
+    <!-- Main Filtered Movie Grid -->
+    <h4 class="font-weight-bold text-dark mb-3">All Movies</h4>
     <div class="row" id="movieList">
         {% for movie in movies %}
         <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-4">
@@ -95,6 +148,9 @@
                     </span>
                     <span class="badge badge-danger position-absolute" style="bottom: 10px; left: 10px;">
                         {{ movie.genre|default:"Action" }}
+                    </span>
+                    <span class="badge badge-light position-absolute border" style="bottom: 10px; right: 10px;">
+                        {{ movie.age_rating|default:"UA" }}
                     </span>
                 </div>
                 <div class="card-body p-3 d-flex flex-column justify-content-between">
@@ -128,12 +184,51 @@
         {% empty %}
         <div class="col-12 text-center py-5">
             <i class="fas fa-film fa-4x text-muted mb-3"></i>
-            <h4 class="text-secondary">No movies matched your search criteria.</h4>
-            <p class="text-muted">Try adjusting your keywords or clearing the active filters.</p>
-            <a href="{% url 'movie_list' %}" class="btn btn-outline-danger mt-2">Reset Filters</a>
+            <h4 class="text-secondary">No movies matched your search or filters.</h4>
+            <p class="text-muted">Try adjusting your filters, selecting a different city, or clearing active filters.</p>
+            <a href="{% url 'movie_list' %}" class="btn btn-outline-danger mt-2">Reset All Filters</a>
         </div>
         {% endfor %}
     </div>
+
+    <!-- Server-Side Pagination -->
+    {% if movies.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if movies.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ movies.previous_page_number }}&search={{ search_query }}&genre={{ selected_genre }}&language={{ selected_language }}&city={{ selected_city }}&sort={{ selected_sort }}">
+                    &laquo; Previous
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo; Previous</span></li>
+            {% endif %}
+
+            {% for p in movies.paginator.page_range %}
+                {% if movies.number == p %}
+                <li class="page-item active"><span class="page-link bg-danger border-danger">{{ p }}</span></li>
+                {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ p }}&search={{ search_query }}&genre={{ selected_genre }}&language={{ selected_language }}&city={{ selected_city }}&sort={{ selected_sort }}">
+                        {{ p }}
+                    </a>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if movies.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ movies.next_page_number }}&search={{ search_query }}&genre={{ selected_genre }}&language={{ selected_language }}&city={{ selected_city }}&sort={{ selected_sort }}">
+                    Next &raquo;
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 
 <style>
@@ -146,10 +241,7 @@
         transform: translateY(-6px);
         box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
     }
-    .badge-danger {
-        background-color: #f84464;
-    }
-    .btn-danger {
+    .badge-danger, .btn-danger {
         background-color: #f84464;
         border-color: #f84464;
     }
