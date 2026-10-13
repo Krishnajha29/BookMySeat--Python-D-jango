@@ -1,24 +1,35 @@
 {% extends "users/basic.html" %}
 
 {% block content %}
-<div class="container py-5">
-    <h1 class="text-center mb-5">Movies</h1>
+<div class="container py-3">
+    <!-- Header & Search -->
+    <div class="text-center mb-4">
+        <h1 class="font-weight-bold text-dark">Explore Movies</h1>
+        <p class="text-muted">Browse top-rated blockbusters, filter by your favorite genre or language, and book seats instantly.</p>
+    </div>
 
-    <div class="row justify-content-center mb-5">
-        <div class="col-md-8">
-            <form method="GET" action="{% url 'movie_list' %}" class="search-bar">
+    <!-- Search Form -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-8">
+            <form method="GET" action="{% url 'movie_list' %}" class="shadow-sm rounded">
                 <div class="input-group">
                     <input
-                        class="form-control form-control-lg"
+                        class="form-control form-control-lg border-right-0"
                         name="search"
-                        placeholder="Search for Movies, Events, Plays, Sports and Activities"
+                        placeholder="Search movies by title, cast or description..."
                         type="text"
-                        value="{{ request.GET.search|default_if_none:'' }}"
+                        value="{{ search_query|default_if_none:'' }}"
                         aria-label="Search for movies"
                     />
+                    {% if selected_genre %}
+                    <input type="hidden" name="genre" value="{{ selected_genre }}">
+                    {% endif %}
+                    {% if selected_language %}
+                    <input type="hidden" name="language" value="{{ selected_language }}">
+                    {% endif %}
                     <div class="input-group-append">
-                        <button class="btn btn-primary" type="submit">
-                            <i class="fas fa-search"></i> Search
+                        <button class="btn btn-danger px-4" type="submit">
+                            <i class="fas fa-search me-1"></i> Search
                         </button>
                     </div>
                 </div>
@@ -26,86 +37,125 @@
         </div>
     </div>
 
+    <!-- Filter Bar: Genre & Language -->
+    <div class="card border-0 bg-light shadow-sm p-3 mb-4">
+        <div class="row align-items-center">
+            <!-- Genre Filters -->
+            <div class="col-md-7 mb-2 mb-md-0">
+                <span class="font-weight-bold text-secondary mr-2"><i class="fas fa-tags me-1"></i> Genre:</span>
+                <a href="?search={{ search_query }}&language={{ selected_language }}"
+                   class="badge badge-pill {% if not selected_genre %}badge-danger{% else %}badge-light text-dark border{% endif %} p-2 mr-1">
+                   All
+                </a>
+                {% for g in all_genres %}
+                <a href="?search={{ search_query }}&genre={{ g }}&language={{ selected_language }}"
+                   class="badge badge-pill {% if selected_genre == g %}badge-danger{% else %}badge-light text-dark border{% endif %} p-2 mr-1">
+                   {{ g }}
+                </a>
+                {% endfor %}
+            </div>
+
+            <!-- Language Filters -->
+            <div class="col-md-5 text-md-right">
+                <span class="font-weight-bold text-secondary mr-2"><i class="fas fa-language me-1"></i> Language:</span>
+                <a href="?search={{ search_query }}&genre={{ selected_genre }}"
+                   class="badge badge-pill {% if not selected_language %}badge-danger{% else %}badge-light text-dark border{% endif %} p-2 mr-1">
+                   All
+                </a>
+                {% for l in all_languages %}
+                <a href="?search={{ search_query }}&genre={{ selected_genre }}&language={{ l }}"
+                   class="badge badge-pill {% if selected_language == l %}badge-danger{% else %}badge-light text-dark border{% endif %} p-2 mr-1">
+                   {{ l }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% if search_query or selected_genre or selected_language %}
+        <div class="mt-2 text-right">
+            <a href="{% url 'movie_list' %}" class="small text-danger"><i class="fas fa-times-circle"></i> Clear All Filters</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Movie Grid -->
     <div class="row" id="movieList">
         {% for movie in movies %}
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm">
-                <img src="{{ movie.image.url }}" class="card-img-top" alt="{{ movie.name }}" style="height: 300px; object-fit: cover;">
-                <div class="card-body">
-                    <h5 class="card-title">{{ movie.name }}</h5>
-                    <p class="card-text">
-                        <i class="fas fa-star text-warning"></i> {{ movie.rating }}
-                    </p>
-                    <p class="card-text">
-                        <small class="text-muted">
-                            <i class="fas fa-users"></i> Cast: {{ movie.cast }}
-                        </small>
-                    </p>
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-4">
+            <div class="card h-100 shadow-sm border-0 movie-card">
+                <div class="position-relative">
+                    {% if movie.image %}
+                    <img src="{{ movie.image.url }}" class="card-img-top" alt="{{ movie.name }}" style="height: 320px; object-fit: cover;">
+                    {% else %}
+                    <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 320px;">
+                        <i class="fas fa-film fa-3x"></i>
+                    </div>
+                    {% endif %}
+                    <span class="badge badge-dark position-absolute" style="top: 10px; right: 10px; opacity: 0.9;">
+                        <i class="fas fa-star text-warning"></i> {{ movie.rating }}/10
+                    </span>
+                    <span class="badge badge-danger position-absolute" style="bottom: 10px; left: 10px;">
+                        {{ movie.genre|default:"Action" }}
+                    </span>
                 </div>
-                <div class="card-footer bg-white border-top-0">
-                    <a href="{% url 'theater_list' movie.id %}" class="btn btn-outline-primary btn-block">
-                        View Theaters <i class="fas fa-chevron-right ml-2"></i>
-                    </a>
+                <div class="card-body p-3 d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="card-title font-weight-bold text-truncate mb-1" title="{{ movie.name }}">{{ movie.name }}</h5>
+                        <p class="text-muted small mb-2">
+                            <i class="fas fa-globe mr-1"></i> {{ movie.language|default:"English" }} &bull;
+                            <i class="far fa-clock mr-1"></i> {{ movie.duration|default:"120" }} mins
+                        </p>
+                        <p class="card-text small text-secondary text-truncate" title="{{ movie.cast }}">
+                            <i class="fas fa-users mr-1"></i> {{ movie.cast }}
+                        </p>
+                    </div>
+                    <div class="mt-3">
+                        <div class="row no-gutters">
+                            <div class="col-6 pr-1">
+                                <a href="{% url 'movie_detail' movie.id %}" class="btn btn-outline-secondary btn-sm btn-block">
+                                    Details
+                                </a>
+                            </div>
+                            <div class="col-6 pl-1">
+                                <a href="{% url 'theater_list' movie.id %}" class="btn btn-danger btn-sm btn-block">
+                                    Book <i class="fas fa-ticket-alt ml-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         {% empty %}
-        <div class="col-12 text-center">
-            <p class="lead">No movies found. Try a different search term.</p>
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-film fa-4x text-muted mb-3"></i>
+            <h4 class="text-secondary">No movies matched your search criteria.</h4>
+            <p class="text-muted">Try adjusting your keywords or clearing the active filters.</p>
+            <a href="{% url 'movie_list' %}" class="btn btn-outline-danger mt-2">Reset Filters</a>
         </div>
         {% endfor %}
     </div>
 </div>
 
-<!-- Bootstrap JS and dependencies -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-
 <style>
-    .card {
-        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    .movie-card {
+        border-radius: 10px;
+        overflow: hidden;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+    .movie-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+    }
+    .badge-danger {
+        background-color: #f84464;
+    }
+    .btn-danger {
+        background-color: #f84464;
+        border-color: #f84464;
+    }
+    .btn-danger:hover {
+        background-color: #d82b4a;
+        border-color: #d82b4a;
     }
 </style>
-
-<script>
-    $(document).ready(function() {
-        // Add animation to cards on hover
-        $('.card').hover(
-            function() { $(this).addClass('shadow'); },
-            function() { $(this).removeClass('shadow'); }
-        );
-
-        // Implement client-side filtering
-        $('input[name="search"]').on('input', function() {
-            var searchTerm = $(this).val().toLowerCase();
-            $('#movieList .col-md-4').each(function() {
-                var movieTitle = $(this).find('.card-title').text().toLowerCase();
-                if (movieTitle.includes(searchTerm)) {
-                    $(this).show();
-                } else {
-                    $(this).hide();
-                }
-            });
-        });
-    });
-</script>
-<!-- <h1>Movies</h1>
-<ul>
-    {% for movie in movies%}
-    <li>
-        <img src="{{movie.image.url}}" alt="image" >
-        <strong>{{movie.name}}</strong>{{movie.rating}}
-        <p>Cast:{{movie.cast}}</p>
-        <a href="{% url 'theater_list' movie.id %}">View Theaters</a>
-    </li>
-    {% endfor %}
-</ul> -->
 {% endblock %}

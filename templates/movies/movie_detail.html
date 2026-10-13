@@ -1,0 +1,130 @@
+{% extends "users/basic.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb bg-transparent p-0 mb-4">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'movie_list' %}">Movies</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ movie.name }}</li>
+        </ol>
+    </nav>
+
+    <!-- Movie Overview Card -->
+    <div class="card border-0 shadow-sm rounded-lg overflow-hidden mb-5">
+        <div class="row no-gutters">
+            <div class="col-md-4 text-center bg-dark">
+                {% if movie.image %}
+                <img src="{{ movie.image.url }}" alt="{{ movie.name }}" class="img-fluid w-100 h-100" style="object-fit: cover; max-height: 480px;">
+                {% else %}
+                <div class="d-flex align-items-center justify-content-center text-white" style="height: 400px;">
+                    <i class="fas fa-film fa-5x"></i>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-md-8">
+                <div class="card-body p-4 p-md-5 d-flex flex-column justify-content-between h-100">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h2 class="font-weight-bold text-dark mb-0">{{ movie.name }}</h2>
+                            <span class="badge badge-warning font-weight-bold p-2 text-dark font-size-lg">
+                                <i class="fas fa-star text-warning"></i> {{ movie.rating }} / 10
+                            </span>
+                        </div>
+
+                        <div class="mb-3">
+                            <span class="badge badge-danger p-2 mr-2">{{ movie.genre|default:"Action" }}</span>
+                            <span class="badge badge-secondary p-2 mr-2"><i class="fas fa-globe mr-1"></i> {{ movie.language|default:"English" }}</span>
+                            <span class="badge badge-light border p-2"><i class="far fa-clock mr-1"></i> {{ movie.duration|default:"120" }} mins</span>
+                        </div>
+
+                        <hr>
+
+                        <div class="mb-3">
+                            <h5 class="font-weight-bold text-secondary mb-2">About the Movie</h5>
+                            <p class="text-dark leading-relaxed">
+                                {{ movie.description|default:"Experience the thrilling cinematic journey in theatres near you. An unforgettable story packed with emotion, spectacle, and outstanding performances." }}
+                            </p>
+                        </div>
+
+                        <div class="mb-3">
+                            <h5 class="font-weight-bold text-secondary mb-2">Cast & Crew</h5>
+                            <p class="text-dark">
+                                <i class="fas fa-users text-danger mr-2"></i> {{ movie.cast }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top d-flex flex-wrap align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted small">Ready to experience this on the big screen?</span>
+                        </div>
+                        <a href="{% url 'theater_list' movie.id %}" class="btn btn-danger btn-lg px-4 shadow">
+                            <i class="fas fa-ticket-alt mr-2"></i> Select Showtimes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Theaters Section -->
+    <div class="mb-5">
+        <h3 class="font-weight-bold text-dark mb-4 border-left border-danger pl-3" style="border-width: 4px !important;">
+            Available Showtimes & Theatres
+        </h3>
+
+        {% if theaters %}
+        <div class="row">
+            {% for theater in theaters %}
+            <div class="col-md-6 mb-3">
+                <div class="card h-100 border-0 shadow-sm p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <h5 class="font-weight-bold text-dark mb-1">{{ theater.name }}</h5>
+                            <small class="text-muted"><i class="fas fa-map-marker-alt text-danger mr-1"></i> {{ theater.location|default:"Audi 1" }}</small>
+                        </div>
+                        <span class="badge badge-success px-3 py-2 font-weight-normal">₹{{ theater.price }} onwards</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                        <span class="font-weight-bold text-primary">
+                            <i class="far fa-clock mr-1"></i> {{ theater.time|date:"M d, Y - h:i A" }}
+                        </span>
+                        <a href="{% url 'book_seats' theater.id %}" class="btn btn-outline-danger btn-sm">
+                            Book Seats <i class="fas fa-chevron-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card border-0 bg-light p-4 text-center">
+            <p class="text-muted mb-0">No active showtimes currently listed for this movie. Please check back later!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .badge-danger {
+        background-color: #f84464;
+    }
+    .btn-danger {
+        background-color: #f84464;
+        border-color: #f84464;
+    }
+    .btn-danger:hover {
+        background-color: #d82b4a;
+        border-color: #d82b4a;
+    }
+    .btn-outline-danger {
+        color: #f84464;
+        border-color: #f84464;
+    }
+    .btn-outline-danger:hover {
+        background-color: #f84464;
+        color: white;
+    }
+</style>
+{% endblock %}

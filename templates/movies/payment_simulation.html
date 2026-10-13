@@ -1,0 +1,246 @@
+{% extends "users/basic.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb bg-transparent p-0 mb-3">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'movie_list' %}">Movies</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'booking_summary' theater.id %}">Summary</a></li>
+            <li class="breadcrumb-item active">Payment Simulation</li>
+        </ol>
+    </nav>
+
+    <!-- Progress Indicator -->
+    <div class="card border-0 shadow-sm p-3 mb-4 bg-light">
+        <div class="d-flex justify-content-between align-items-center text-center font-weight-bold small text-muted">
+            <span class="text-success"><i class="fas fa-check-circle mr-1"></i> 1. Movie & Theatre</span>
+            <span class="text-success"><i class="fas fa-check-circle mr-1"></i> 2. Seats Selected</span>
+            <span class="text-success"><i class="fas fa-check-circle mr-1"></i> 3. Booking Summary</span>
+            <span class="text-danger"><i class="fas fa-dot-circle mr-1"></i> 4. Payment Sandbox</span>
+            <span><i class="far fa-circle mr-1"></i> 5. Confirmation</span>
+        </div>
+    </div>
+
+    <!-- Sandbox Warning Banner -->
+    <div class="alert alert-warning border-warning shadow-sm mb-4">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-flask fa-2x mr-3 text-warning"></i>
+            <div>
+                <h5 class="alert-heading font-weight-bold mb-1">Simulated Payment Gateway (Sandbox Environment)</h5>
+                <p class="mb-0 small">
+                    This is a simulation environment for testing the ticket booking flow.
+                    <strong>Do NOT enter real card numbers or banking secrets.</strong> Test credentials are provided for verification.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% if payment_failed %}
+    <div class="alert alert-danger shadow-sm mb-4">
+        <i class="fas fa-exclamation-triangle mr-2"></i>
+        <strong>Payment Simulation Outcome: Failed / Declined.</strong> You can retry the transaction using the success option below or return to select different seats.
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Payment Options Column -->
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm rounded-lg overflow-hidden">
+                <div class="card-header bg-dark text-white p-3">
+                    <h5 class="font-weight-bold mb-0">
+                        <i class="fas fa-wallet mr-2 text-danger"></i> Choose Payment Method
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Nav Tabs for Payment Methods -->
+                    <ul class="nav nav-pills mb-4 nav-justified" id="pills-tab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active font-weight-bold" id="card-tab" data-toggle="pill" href="#card-panel" role="tab">
+                                <i class="far fa-credit-card mr-1"></i> Card
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link font-weight-bold" id="upi-tab" data-toggle="pill" href="#upi-panel" role="tab">
+                                <i class="fas fa-mobile-alt mr-1"></i> UPI / QR
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link font-weight-bold" id="netbanking-tab" data-toggle="pill" href="#netbanking-panel" role="tab">
+                                <i class="fas fa-university mr-1"></i> Net Banking
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link font-weight-bold" id="wallet-tab" data-toggle="pill" href="#wallet-panel" role="tab">
+                                <i class="fas fa-wallet mr-1"></i> Wallet
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- Payment Form for Success Simulation -->
+                    <form method="POST" id="paymentForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" id="actionField" value="pay">
+                        <input type="hidden" name="payment_method" id="methodField" value="Demo Card">
+
+                        <div class="tab-content border rounded p-4 mb-4 bg-light" id="pills-tabContent">
+                            <!-- Card Tab -->
+                            <div class="tab-pane fade show active" id="card-panel" role="tabpanel">
+                                <h6 class="font-weight-bold text-dark mb-3"><i class="far fa-credit-card mr-1"></i> Test Credit / Debit Card</h6>
+                                <div class="form-group">
+                                    <label class="small font-weight-bold text-muted">Card Number (Simulated)</label>
+                                    <input type="text" class="form-control" value="4532 &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 8892" readonly>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label class="small font-weight-bold text-muted">Expiry</label>
+                                        <input type="text" class="form-control" value="12/29" readonly>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label class="small font-weight-bold text-muted">CVV</label>
+                                        <input type="password" class="form-control" value="888" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-group mb-0">
+                                    <label class="small font-weight-bold text-muted">Cardholder Name</label>
+                                    <input type="text" class="form-control" value="{{ request.user.username|upper }}" readonly>
+                                </div>
+                            </div>
+
+                            <!-- UPI Tab -->
+                            <div class="tab-pane fade" id="upi-panel" role="tabpanel">
+                                <h6 class="font-weight-bold text-dark mb-3"><i class="fas fa-qrcode mr-1"></i> Scan & Pay via UPI App</h6>
+                                <div class="text-center py-2">
+                                    <div class="p-3 bg-white d-inline-block rounded shadow-sm border mb-2">
+                                        <i class="fas fa-qrcode fa-5x text-dark"></i>
+                                    </div>
+                                    <p class="small text-muted mb-1">Scan using Google Pay, PhonePe, Paytm, or BHIM</p>
+                                    <p class="small font-weight-bold text-danger">UPI ID: bookmyseat.demo@okaxis</p>
+                                </div>
+                            </div>
+
+                            <!-- Net Banking Tab -->
+                            <div class="tab-pane fade" id="netbanking-panel" role="tabpanel">
+                                <h6 class="font-weight-bold text-dark mb-3"><i class="fas fa-university mr-1"></i> Popular Banks</h6>
+                                <div class="row">
+                                    <div class="col-6 mb-2">
+                                        <div class="p-2 border rounded bg-white text-center font-weight-bold small">
+                                            <i class="fas fa-landmark text-primary mr-1"></i> HDFC Bank
+                                        </div>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <div class="p-2 border rounded bg-white text-center font-weight-bold small">
+                                            <i class="fas fa-landmark text-danger mr-1"></i> ICICI Bank
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 border rounded bg-white text-center font-weight-bold small">
+                                            <i class="fas fa-landmark text-info mr-1"></i> State Bank of India
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 border rounded bg-white text-center font-weight-bold small">
+                                            <i class="fas fa-landmark text-warning mr-1"></i> Axis Bank
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Wallet Tab -->
+                            <div class="tab-pane fade" id="wallet-panel" role="tabpanel">
+                                <h6 class="font-weight-bold text-dark mb-3"><i class="fas fa-wallet mr-1"></i> BookMySeat Wallet</h6>
+                                <div class="alert alert-success d-flex justify-content-between align-items-center mb-0">
+                                    <span>Available Demo Balance:</span>
+                                    <span class="font-weight-bold h5 mb-0">₹5,000.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex flex-wrap align-items-center justify-content-between pt-2">
+                            <button type="submit" onclick="document.getElementById('actionField').value='pay';" class="btn btn-success btn-lg px-4 shadow font-weight-bold mb-2 mb-sm-0">
+                                <i class="fas fa-check-circle mr-2"></i> Pay ₹{{ grand_total }} (Simulate Success)
+                            </button>
+
+                            <button type="submit" onclick="document.getElementById('actionField').value='fail';" class="btn btn-outline-danger btn-lg px-4 mb-2 mb-sm-0">
+                                <i class="fas fa-times-circle mr-1"></i> Simulate Failure
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Summary Column -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm p-4 rounded-lg bg-light">
+                <h5 class="font-weight-bold text-dark border-bottom pb-3 mb-3">
+                    <i class="fas fa-ticket-alt text-danger mr-2"></i> Order Overview
+                </h5>
+
+                <div class="mb-3">
+                    <h6 class="font-weight-bold text-dark mb-1">{{ movie.name }}</h6>
+                    <small class="text-muted d-block">{{ theater.name }} ({{ theater.location|default:"Audi 1" }})</small>
+                    <small class="text-danger font-weight-bold">{{ theater.time|date:"M d, Y - h:i A" }}</small>
+                </div>
+
+                <div class="mb-3">
+                    <small class="text-muted font-weight-bold text-uppercase d-block mb-1">Seats ({{ selected_seats|length }}):</small>
+                    <div>
+                        {% for s in selected_seats %}
+                        <span class="badge badge-secondary mr-1 mb-1">{{ s.seat_number }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="font-weight-bold text-dark">Amount Payable:</span>
+                    <span class="h4 font-weight-bold text-danger mb-0">₹{{ grand_total }}</span>
+                </div>
+
+                <a href="{% url 'booking_summary' theater.id %}" class="btn btn-outline-secondary btn-sm btn-block">
+                    <i class="fas fa-arrow-left mr-1"></i> Back to Summary
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Update payment method field on tab switch
+    document.addEventListener("DOMContentLoaded", function() {
+        $('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+            var target = $(e.target).attr("href");
+            if (target === "#card-panel") document.getElementById('methodField').value = "Demo Card";
+            else if (target === "#upi-panel") document.getElementById('methodField').value = "UPI / QR";
+            else if (target === "#netbanking-panel") document.getElementById('methodField').value = "Net Banking";
+            else if (target === "#wallet-panel") document.getElementById('methodField').value = "BookMySeat Wallet";
+        });
+    });
+</script>
+
+<style>
+    .nav-pills .nav-link {
+        color: #495057;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        margin: 0 4px;
+        border-radius: 6px;
+    }
+    .nav-pills .nav-link.active {
+        color: #fff;
+        background-color: #f84464;
+        border-color: #f84464;
+    }
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+    .badge-danger {
+        background-color: #f84464;
+    }
+</style>
+{% endblock %}

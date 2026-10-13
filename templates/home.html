@@ -121,27 +121,38 @@
     </div>
     {% endif %}
   
-    <div class="section-title">Recommended Movies</div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="section-title mb-0 border-0 p-0">Recommended Movies</div>
+      <a href="{% url 'movie_list' %}" class="text-danger font-weight-bold">See All ({{ movies|length }}) <i class="fas fa-chevron-right ml-1"></i></a>
+    </div>
     <div class="row">
-        {% if movies %}
+      {% if movies %}
       {% for movie in movies|slice:":4" %}
-      <div class="col-md-3 col-sm-6">
-        <!-- Wrap the card in an anchor to make the entire card clickable -->
-        <a href="{% url 'theater_list' movie.id %}" class="text-decoration-none">
-          <div class="card h-100">
-            <img
-              src="{{ movie.image.url }}"
-              class="card-img-top"
-              alt="{{ movie.name }}"
-              height="300"
-            />
-            <div class="card-body d-flex flex-column justify-content-between">
-              <h5 class="card-title text-center">{{ movie.name }}</h5>
-              <p class="card-text text-center">{{ movie.description }}</p>
-              <!-- Replace with the appropriate movie description field -->
+      <div class="col-md-3 col-sm-6 mb-4">
+        <div class="card h-100 shadow-sm border-0">
+          <a href="{% url 'movie_detail' movie.id %}" class="text-decoration-none">
+            <div class="position-relative">
+              <img
+                src="{{ movie.image.url }}"
+                class="card-img-top"
+                alt="{{ movie.name }}"
+                height="300"
+                style="object-fit: cover;"
+              />
+              <span class="badge badge-dark position-absolute" style="top: 10px; right: 10px; opacity: 0.9;">
+                <i class="fas fa-star text-warning"></i> {{ movie.rating }}
+              </span>
             </div>
-          </div>
-        </a>
+            <div class="card-body p-3">
+              <h6 class="card-title font-weight-bold text-dark text-truncate mb-1">{{ movie.name }}</h6>
+              <p class="card-text text-muted small text-truncate mb-2">{{ movie.genre|default:"Action" }} &bull; {{ movie.language|default:"English" }}</p>
+              <div class="d-flex justify-content-between align-items-center mt-2">
+                <span class="btn btn-outline-secondary btn-sm">Details</span>
+                <a href="{% url 'theater_list' movie.id %}" class="btn btn-danger btn-sm">Book</a>
+              </div>
+            </div>
+          </a>
+        </div>
       </div>
       {% endfor %}
       {% endif %}

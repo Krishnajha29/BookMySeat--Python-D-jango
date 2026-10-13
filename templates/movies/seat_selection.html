@@ -1,170 +1,344 @@
-{% extends "users/basic.html" %} {% block content %}
-<div class="container mt-5">
-  <div class="row">
-    <div class="col-lg-8 mx-auto">
-      <!-- Movie and Theater Info -->
-      <div class="card mb-4">
-        <div class="card-body">
-          <div
-            class="d-flex justify-content-between align-items-center flex-wrap"
-          >
+{% extends "users/basic.html" %}
+
+{% block content %}
+<div class="container py-3">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb bg-transparent p-0 mb-3">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'movie_list' %}">Movies</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'theater_list' theaters.movie.id %}">{{ theaters.movie.name }}</a></li>
+            <li class="breadcrumb-item active">Seat Selection</li>
+        </ol>
+    </nav>
+
+    <!-- Header Card -->
+    <div class="card border-0 shadow-sm p-3 mb-4 bg-white rounded-lg">
+        <div class="d-flex flex-wrap justify-content-between align-items-center">
             <div>
-              <h4 class="card-title">{{ theaters.movie.name }}</h4>
-              <p class="card-text text-muted">
-                {{ theaters.name }} | {{ theaters.time }}
-              </p>
+                <h3 class="font-weight-bold text-dark mb-1">{{ theaters.movie.name }}</h3>
+                <p class="text-muted mb-0">
+                    <span class="font-weight-bold text-danger">{{ theaters.name }}</span> |
+                    <i class="fas fa-map-marker-alt text-muted mr-1"></i> {{ theaters.location|default:"Audi 1" }} |
+                    <i class="far fa-clock text-muted mr-1"></i> {{ theaters.time|date:"M d, Y - h:i A" }}
+                </p>
             </div>
-            <div class="mt-2 mt-sm-0">
-              <button class="btn btn-outline-primary me-2 mb-2 mb-sm-0">
-                2D
-              </button>
-              <button class="btn btn-outline-primary me-2 mb-2 mb-sm-0">
-                3D
-              </button>
-              <button class="btn btn-outline-primary mb-2 mb-sm-0">
-                IMAX 3D
-              </button>
-              <button class="btn btn-outline-primary mb-2 mb-sm-0">
-                {{seats|length}} Tickets
-              </button>
+            <div class="mt-2 mt-md-0">
+                <span class="badge badge-light border p-2 mr-2">Base Price: ₹{{ theaters.price }}</span>
+                <span class="badge badge-success p-2">{{ seats|length }} Total Seats</span>
             </div>
-          </div>
         </div>
-      </div>
-
-      <!-- Seat Selection -->
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title text-center mb-4">Select Your Seats</h5>
-          <div class="screen">All eyes this way please!</div>
-
-          <form method="POST">
-            {% csrf_token %}
-            <div class="d-flex justify-content-center flex-wrap mb-4">
-              {% for seat in seats %}
-              <div class="seat {% if seat.is_booked %}sold{% endif %}">
-                {% if not seat.is_booked %}
-                <input
-                  type="checkbox"
-                  name="seats"
-                  value="{{ seat.id }}"
-                  class="d-none"
-                  id="seat-{{ seat.id }}"
-                />
-                <label
-                  for="seat-{{ seat.id }}"
-                  class="w-100 h-100 d-flex align-items-center justify-content-center"
-                  >{{ seat.seat_number }}</label
-                >
-                {% else %} {{ seat.seat_number }} {% endif %}
-              </div>
-              {% endfor %}
-            </div>
-
-            <!-- Seat Legend -->
-            <div class="d-flex justify-content-center mb-4">
-              <div class="d-flex align-items-center me-4">
-                <div class="seat" style="background-color: white"></div>
-                <span class="ms-2">Available</span>
-              </div>
-              <div class="d-flex align-items-center me-4">
-                <div class="seat selected"></div>
-                <span class="ms-2">Selected</span>
-              </div>
-              <div class="d-flex align-items-center">
-                <div class="seat sold"></div>
-                <span class="ms-2">Sold</span>
-              </div>
-            </div>
-
-            <!-- Book Button -->
-            <div class="text-center">
-              <button type="submit" class="btn btn-success btn-lg">
-                Book Selected Seats
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
     </div>
-  </div>
-</div>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-  }
-  .seat {
-    width: 30px;
-    height: 30px;
-    border: 1px solid #28a745;
-    margin: 3px;
-    text-align: center;
-    line-height: 30px;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: background-color 0.3s, color 0.3s;
-  }
-  .seat:hover {
-    background-color: #28a745;
-    color: white;
-  }
-  .seat.selected {
-    background-color: #28a745;
-    color: white;
-  }
-  .seat.sold {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
-  .screen {
-    margin: 20px 0;
-    background-color: #ccc;
-    height: 50px;
-    text-align: center;
-    line-height: 50px;
-    color: #666;
-  }
-  .footer {
-    background-color: #333;
-    color: #ccc;
-    padding: 20px 0;
-  }
-  .footer a {
-    color: #ccc;
-    text-decoration: none;
-  }
-  .footer a:hover {
-    text-decoration: underline;
-  }
-  .footer .col-md-2,
-  .footer .col-md-3 {
-    margin-bottom: 20px;
-  }
-  .footer .social-icons i {
-    font-size: 20px;
-    margin: 0 10px;
-  }
-</style>
-<!-- <h1>Seats for {{theater.name}} - {{theater.movie.name}}</h1>
-{% if error %}
-<p style="color:red;">{{error}}</p>
-{% endif %}
-<form method="POST">
-    {% csrf_token %}
-    <ul>
-        {% for seat in seats %}
-        <li>
-          Seats{{seat.seat_number}}:
-          {% if seat.is_booked %}
-          <strong>Booked seat {{seat.seat_number}}</strong>
-          {% else %}
-          <input type="checkbox" name="seats" value="{{seat.id}}">
-          <strong>Available seat {{seat.seat_number}}</strong>
-          {% endif%}
-        </li>
-        {% endfor %}
-      </ul>
-      <button type="submit">Book selected seats</button>
-</form> -->
 
+    <!-- React Root Container for Interactive Seat Selection -->
+    <div id="react-seat-selector"></div>
+
+    <!-- Fallback / Server-Rendered Form (accessible & Progressive Enhancement) -->
+    <noscript>
+        <div class="card border-0 shadow-sm p-4">
+            <h5 class="text-danger">JavaScript is disabled. Standard Booking:</h5>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="d-flex flex-wrap mb-3">
+                    {% for seat in seats %}
+                    <div class="m-1">
+                        {% if not seat.is_booked %}
+                        <label class="btn btn-outline-success btn-sm">
+                            <input type="checkbox" name="seats" value="{{ seat.id }}"> {{ seat.seat_number }} (₹{{ seat.price }})
+                        </label>
+                        {% else %}
+                        <span class="btn btn-secondary btn-sm disabled">{{ seat.seat_number }} (Sold)</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="submit" class="btn btn-danger btn-lg">Proceed to Summary</button>
+            </form>
+        </div>
+    </noscript>
+</div>
+
+<!-- Load React 18, ReactDOM, and Babel for seamless in-browser React rendering -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!-- Embedded Seat Data from Django -->
+<script>
+    const SEATS_DATA = [
+        {% for seat in seats %}
+        {
+            id: {{ seat.id }},
+            number: "{{ seat.seat_number }}",
+            type: "{{ seat.seat_type|default:'Standard' }}",
+            price: {{ seat.price }},
+            isBooked: {{ seat.is_booked|yesno:"true,false" }}
+        },
+        {% endfor %}
+    ];
+    const CSRF_TOKEN = "{{ csrf_token }}";
+</script>
+
+{% verbatim %}
+<script type="text/babel">
+    const { useState, useMemo } = React;
+
+    function SeatSelectorApp() {
+        const [selectedSeatIds, setSelectedSeatIds] = useState([]);
+
+        // Group seats by category/type
+        const seatCategories = useMemo(() => {
+            const categories = {
+                'VIP': [],
+                'Premium': [],
+                'Standard': []
+            };
+
+            SEATS_DATA.forEach(seat => {
+                if (categories[seat.type]) {
+                    categories[seat.type].push(seat);
+                } else {
+                    if (!categories['Standard']) categories['Standard'] = [];
+                    categories['Standard'].push(seat);
+                }
+            });
+            return categories;
+        }, []);
+
+        const toggleSeat = (seat) => {
+            if (seat.isBooked) return;
+            setSelectedSeatIds(prev => {
+                if (prev.includes(seat.id)) {
+                    return prev.filter(id => id !== seat.id);
+                } else {
+                    return [...prev, seat.id];
+                }
+            });
+        };
+
+        const selectedSeats = useMemo(() => {
+            return SEATS_DATA.filter(s => selectedSeatIds.includes(s.id));
+        }, [selectedSeatIds]);
+
+        const ticketSubtotal = useMemo(() => {
+            return selectedSeats.reduce((acc, s) => acc + s.price, 0);
+        }, [selectedSeats]);
+
+        const convenienceFee = selectedSeats.length * 15;
+        const gst = Math.round(convenienceFee * 0.18 * 100) / 100;
+        const grandTotal = Math.round((ticketSubtotal + convenienceFee + gst) * 100) / 100;
+
+        return (
+            <div className="row">
+                {/* Main Seat Map Layout */}
+                <div className="col-lg-8 mb-4">
+                    <div className="card border-0 shadow-sm p-4 text-center rounded-lg">
+                        {/* Curved Cinema Screen */}
+                        <div className="screen-container mb-5">
+                            <div className="screen-curve mb-2"></div>
+                            <span className="small text-uppercase text-muted font-weight-bold tracking-wider">
+                                <i className="fas fa-desktop mr-1"></i> Screen This Way
+                            </span>
+                        </div>
+
+                        {/* Legend */}
+                        <div className="d-flex justify-content-center align-items-center flex-wrap mb-4 py-2 border-top border-bottom">
+                            <div className="d-flex align-items-center mx-3 my-1">
+                                <div className="seat-preview seat-available mr-2"></div>
+                                <span className="small text-muted">Available</span>
+                            </div>
+                            <div className="d-flex align-items-center mx-3 my-1">
+                                <div className="seat-preview seat-selected mr-2"></div>
+                                <span className="small text-muted">Selected</span>
+                            </div>
+                            <div className="d-flex align-items-center mx-3 my-1">
+                                <div className="seat-preview seat-sold mr-2"></div>
+                                <span className="small text-muted">Sold / Unavailable</span>
+                            </div>
+                        </div>
+
+                        {/* Seat Grid by Category */}
+                        {Object.entries(seatCategories).map(([category, seats]) => {
+                            if (seats.length === 0) return null;
+                            const catPrice = seats[0]?.price || 150;
+                            return (
+                                <div key={category} className="category-section mb-4">
+                                    <div className="d-flex justify-content-between align-items-center mb-2 px-3">
+                                        <span className="badge badge-light border text-uppercase font-weight-bold">
+                                            {category} &bull; ₹{catPrice}
+                                        </span>
+                                        <small className="text-muted">{seats.filter(s => !s.isBooked).length} seats available</small>
+                                    </div>
+                                    <div className="seat-grid d-flex flex-wrap justify-content-center">
+                                        {seats.map(seat => {
+                                            const isSelected = selectedSeatIds.includes(seat.id);
+                                            let seatClass = "seat-btn ";
+                                            if (seat.isBooked) seatClass += "seat-sold";
+                                            else if (isSelected) seatClass += "seat-selected";
+                                            else seatClass += "seat-available";
+
+                                            return (
+                                                <button
+                                                    key={seat.id}
+                                                    type="button"
+                                                    disabled={seat.isBooked}
+                                                    onClick={() => toggleSeat(seat)}
+                                                    className={seatClass}
+                                                    title={`${seat.number} - ₹${seat.price} (${category})`}
+                                                >
+                                                    {seat.number}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Live Dynamic Price & Summary Sidebar */}
+                <div className="col-lg-4">
+                    <div className="card border-0 shadow-sm p-4 sticky-top rounded-lg" style={{ top: '20px' }}>
+                        <h5 className="font-weight-bold text-dark border-bottom pb-3 mb-3">
+                            <i className="fas fa-shopping-cart text-danger mr-2"></i> Booking Summary
+                        </h5>
+
+                        {selectedSeats.length === 0 ? (
+                            <div className="text-center py-4 text-muted">
+                                <i className="fas fa-chair fa-3x mb-3 text-light-gray"></i>
+                                <p className="mb-0">No seats selected yet.</p>
+                                <small>Click on any available seat to see live price calculation.</small>
+                            </div>
+                        ) : (
+                            <div>
+                                <div className="mb-3">
+                                    <label className="small text-muted font-weight-bold text-uppercase d-block mb-1">
+                                        Selected Seats ({selectedSeats.length})
+                                    </label>
+                                    <div className="d-flex flex-wrap">
+                                        {selectedSeats.map(s => (
+                                            <span key={s.id} className="badge badge-danger p-2 m-1 font-weight-normal">
+                                                {s.number} (₹{s.price})
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="price-breakdown border-top pt-3">
+                                    <div className="d-flex justify-content-between small text-secondary mb-2">
+                                        <span>Tickets Subtotal:</span>
+                                        <span className="font-weight-bold text-dark">₹{ticketSubtotal.toFixed(2)}</span>
+                                    </div>
+                                    <div className="d-flex justify-content-between small text-secondary mb-2">
+                                        <span>Convenience Fee (₹15/seat):</span>
+                                        <span>₹{convenienceFee.toFixed(2)}</span>
+                                    </div>
+                                    <div className="d-flex justify-content-between small text-secondary mb-2">
+                                        <span>GST (18%):</span>
+                                        <span>₹{gst.toFixed(2)}</span>
+                                    </div>
+                                    <hr className="my-2" />
+                                    <div className="d-flex justify-content-between align-items-center mb-3">
+                                        <span className="font-weight-bold text-dark">Total Amount:</span>
+                                        <span className="h4 font-weight-bold text-danger mb-0">₹{grandTotal.toFixed(2)}</span>
+                                    </div>
+                                </div>
+
+                                {/* Form to submit selected seats to Django */}
+                                <form method="POST">
+                                    <input type="hidden" name="csrfmiddlewaretoken" value={CSRF_TOKEN} />
+                                    {selectedSeatIds.map(id => (
+                                        <input key={id} type="hidden" name="seats" value={id} />
+                                    ))}
+                                    <button
+                                        type="submit"
+                                        className="btn btn-danger btn-block btn-lg shadow font-weight-bold"
+                                    >
+                                        Proceed to Summary <i className="fas fa-arrow-right ml-1"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    ReactDOM.createRoot(document.getElementById('react-seat-selector')).render(<SeatSelectorApp />);
+</script>
+{% endverbatim %}
+
+<style>
+    .screen-container {
+        perspective: 500px;
+    }
+    .screen-curve {
+        height: 12px;
+        background: linear-gradient(to bottom, #d1d5db, #f3f4f6);
+        border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        margin: 0 auto;
+        max-width: 80%;
+    }
+    .seat-btn {
+        width: 38px;
+        height: 38px;
+        margin: 4px;
+        font-size: 11px;
+        font-weight: bold;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease-in-out;
+        border: 1px solid #10b981;
+        cursor: pointer;
+    }
+    .seat-available {
+        background-color: #ffffff;
+        color: #10b981;
+        border-color: #10b981;
+    }
+    .seat-available:hover {
+        background-color: #10b981;
+        color: #ffffff;
+        transform: scale(1.1);
+    }
+    .seat-selected {
+        background-color: #f84464 !important;
+        color: #ffffff !important;
+        border-color: #f84464 !important;
+        box-shadow: 0 2px 8px rgba(248, 68, 100, 0.4);
+        transform: scale(1.08);
+    }
+    .seat-sold {
+        background-color: #e5e7eb !important;
+        color: #9ca3af !important;
+        border-color: #d1d5db !important;
+        cursor: not-allowed !important;
+        opacity: 0.7;
+    }
+    .seat-preview {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+    .badge-danger {
+        background-color: #f84464;
+    }
+    .btn-danger {
+        background-color: #f84464;
+        border-color: #f84464;
+    }
+    .btn-danger:hover {
+        background-color: #d82b4a;
+        border-color: #d82b4a;
+    }
+    .text-light-gray {
+        color: #d1d5db;
+    }
+</style>
 {% endblock %}

@@ -48,23 +48,80 @@
       
       <!-- Bookings Card -->
       <div class="card shadow">
-        <div class="card-header bg-success text-white">
-          <h4 class="mb-0"><i class="fas fa-ticket-alt me-2"> </i> Your Bookings</h4>
+        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+          <h4 class="mb-0"><i class="fas fa-ticket-alt me-2"></i> Your Booking History</h4>
+          <a href="{% url 'movie_list' %}" class="btn btn-outline-light btn-sm">Book New Movie</a>
         </div>
         <div class="card-body">
-          {% if bookings %}
+          {% if grouped_bookings %}
+            <div class="row">
+              {% for order in grouped_bookings %}
+                <div class="col-12 mb-3">
+                  <div class="card border shadow-sm p-3">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-2 mb-2">
+                      <div>
+                        <span class="badge badge-dark mr-2">Ref: {{ order.reference }}</span>
+                        {% if order.payment_status == 'Completed' %}
+                          <span class="badge badge-success"><i class="fas fa-check-circle mr-1"></i> Confirmed</span>
+                        {% elif order.payment_status == 'Cancelled' %}
+                          <span class="badge badge-danger"><i class="fas fa-ban mr-1"></i> Cancelled</span>
+                        {% else %}
+                          <span class="badge badge-warning">{{ order.payment_status }}</span>
+                        {% endif %}
+                      </div>
+                      <small class="text-muted"><i class="far fa-clock mr-1"></i> Booked on {{ order.booked_at|date:"M d, Y - h:i A" }}</small>
+                    </div>
+
+                    <div class="d-flex flex-wrap justify-content-between align-items-center">
+                      <div class="mb-2 mb-md-0">
+                        <h5 class="font-weight-bold text-dark mb-1">{{ order.movie.name }}</h5>
+                        <p class="text-muted small mb-1">
+                          <i class="fas fa-film text-danger mr-1"></i> {{ order.theater.name }} ({{ order.theater.location|default:"Audi 1" }})
+                        </p>
+                        <p class="small mb-1">
+                          <span class="font-weight-bold text-secondary">Seats:</span>
+                          {% for s in order.seats %}
+                            <span class="badge badge-light border text-danger mr-1">{{ s }}</span>
+                          {% endfor %}
+                        </p>
+                        <p class="small text-muted mb-0">
+                          Total Amount: <strong class="text-dark">₹{{ order.total_amount }}</strong> &bull; Paid via {{ order.payment_method }}
+                        </p>
+                      </div>
+
+                      <div class="text-md-right mt-2 mt-md-0">
+                        <a href="{% url 'booking_confirmation' order.reference %}" class="btn btn-outline-danger btn-sm mr-1 mb-1">
+                          <i class="fas fa-eye mr-1"></i> View Ticket
+                        </a>
+
+                        {% if order.can_cancel %}
+                        <form method="POST" action="{% url 'cancel_booking' order.reference %}" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel this booking? This will release your seats.');">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-outline-secondary btn-sm mb-1">
+                            <i class="fas fa-times mr-1"></i> Cancel
+                          </button>
+                        </form>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% elif bookings %}
             <div class="row row-cols-1 row-cols-md-2 g-4">
               {% for booking in bookings %}
-                <div class="col">
-                  <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body">
-                      <h5 class="card-title">{{ booking.movie.name }}</h5>
-                      <p class="card-text">
-                        <i class="fas fa-film me-2 text-muted"> </i>  {{ booking.theater.name }}<br>
-                        <i class="fas fa-chair me-2 text-muted"> </i>  Seat: {{ booking.seat.seat_number }}<br>
-                        <i class="far fa-clock me-2 text-muted"> </i>  {{ booking.booked_at|date:"F d, Y H:i" }}
-                      </p>
-                    </div>
+                <div class="col mb-3">
+                  <div class="card h-100 border shadow-sm p-3">
+                    <h5 class="card-title font-weight-bold text-dark">{{ booking.movie.name }}</h5>
+                    <p class="card-text text-muted small">
+                      <i class="fas fa-film me-2"></i> {{ booking.theater.name }}<br>
+                      <i class="fas fa-chair me-2"></i> Seat: {{ booking.seat.seat_number }}<br>
+                      <i class="far fa-clock me-2"></i> {{ booking.booked_at|date:"F d, Y H:i" }}
+                    </p>
+                    {% if booking.booking_reference %}
+                    <a href="{% url 'booking_confirmation' booking.booking_reference %}" class="btn btn-outline-danger btn-sm mt-2">View Ticket</a>
+                    {% endif %}
                   </div>
                 </div>
               {% endfor %}
@@ -72,7 +129,8 @@
           {% else %}
             <div class="text-center py-5">
               <i class="fas fa-ticket-alt fa-4x text-muted mb-3"></i>
-              <p class="lead mb-0">No bookings yet. Time to plan your next movie night!</p>
+              <p class="lead mb-2">No bookings yet. Time to plan your next movie night!</p>
+              <a href="{% url 'movie_list' %}" class="btn btn-danger">Browse Movies Now</a>
             </div>
           {% endif %}
         </div>

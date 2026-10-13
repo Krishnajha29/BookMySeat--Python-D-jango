@@ -1,0 +1,150 @@
+{% extends "users/basic.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Success Banner -->
+    <div class="text-center mb-4">
+        <div class="d-inline-flex align-items-center justify-content-center bg-success text-white rounded-circle shadow mb-3" style="width: 70px; height: 70px;">
+            <i class="fas fa-check fa-2x"></i>
+        </div>
+        <h2 class="font-weight-bold text-dark mb-1">Booking Confirmed!</h2>
+        <p class="text-muted">Your tickets are locked and confirmed. Have a wonderful movie experience!</p>
+    </div>
+
+    <!-- Ticket Pass Card (Printable Area) -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8" id="ticketPrintArea">
+            <div class="card border-0 shadow-lg rounded-lg overflow-hidden ticket-card mb-4">
+                <!-- Ticket Header -->
+                <div class="bg-danger text-white p-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="small text-uppercase tracking-wider opacity-8">BookMySeat E-Ticket</span>
+                        <h4 class="font-weight-bold mb-0">Booking Ref: {{ booking_reference }}</h4>
+                    </div>
+                    <div class="text-right">
+                        <span class="badge badge-light text-danger font-weight-bold px-3 py-2">
+                            <i class="fas fa-check-circle mr-1"></i> Confirmed
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Ticket Body -->
+                <div class="card-body p-4 p-md-5">
+                    <div class="row align-items-center mb-4 pb-4 border-bottom">
+                        <div class="col-md-3 text-center mb-3 mb-md-0">
+                            {% if movie.image %}
+                            <img src="{{ movie.image.url }}" alt="{{ movie.name }}" class="rounded shadow-sm img-fluid" style="max-height: 180px; object-fit: cover;">
+                            {% else %}
+                            <div class="bg-secondary text-white p-4 rounded text-center">
+                                <i class="fas fa-film fa-3x"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9">
+                            <h3 class="font-weight-bold text-dark mb-1">{{ movie.name }}</h3>
+                            <p class="text-muted mb-2">
+                                <span class="badge badge-secondary mr-1">{{ movie.genre|default:"Action" }}</span>
+                                <span class="badge badge-light border mr-2">{{ movie.language|default:"English" }}</span>
+                                <i class="far fa-clock mr-1"></i> {{ movie.duration|default:"120" }} mins
+                            </p>
+                            <h6 class="font-weight-bold text-secondary mb-1">
+                                <i class="fas fa-film text-danger mr-1"></i> {{ theater.name }} ({{ theater.location|default:"Audi 1" }})
+                            </h6>
+                            <p class="text-danger font-weight-bold mb-0">
+                                <i class="far fa-calendar-alt mr-1"></i> {{ theater.time|date:"l, F d, Y" }} at {{ theater.time|date:"h:i A" }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Seats & Payment Row -->
+                    <div class="row text-center mb-4 pb-4 border-bottom">
+                        <div class="col-4 border-right">
+                            <small class="text-muted font-weight-bold text-uppercase d-block mb-1">Seats</small>
+                            <h4 class="font-weight-bold text-danger mb-0">
+                                {% for s in seats %}
+                                    {{ s.seat_number }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </h4>
+                        </div>
+                        <div class="col-4 border-right">
+                            <small class="text-muted font-weight-bold text-uppercase d-block mb-1">Total Paid</small>
+                            <h4 class="font-weight-bold text-dark mb-0">₹{{ total_paid }}</h4>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted font-weight-bold text-uppercase d-block mb-1">Method</small>
+                            <h6 class="font-weight-bold text-secondary mb-0 mt-1">{{ first_booking.payment_method|default:"Simulated Card" }}</h6>
+                        </div>
+                    </div>
+
+                    <!-- User and Booking Details -->
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+                        <div class="mb-2 mb-md-0">
+                            <small class="text-muted d-block">Booked By: <strong>{{ first_booking.user.username }}</strong></small>
+                            <small class="text-muted d-block">Booked At: {{ first_booking.booked_at|date:"M d, Y - h:i A" }}</small>
+                        </div>
+                        <div class="text-md-right">
+                            <div class="d-inline-block text-center p-2 bg-light border rounded">
+                                <i class="fas fa-qrcode fa-3x text-dark"></i>
+                                <span class="d-block small text-muted font-family-monospace mt-1">{{ booking_reference }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-light border small text-muted mb-0">
+                        <i class="fas fa-info-circle text-primary mr-1"></i>
+                        Please present this e-ticket or reference ID at the cinema entrance. M-ticket accepted on mobile screens.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Print / Navigation Buttons -->
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <a href="{% url 'profile' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-user mr-1"></i> View All Bookings
+                </a>
+                <button type="button" onclick="window.print();" class="btn btn-danger px-4 shadow font-weight-bold">
+                    <i class="fas fa-print mr-1"></i> Print / Save Ticket
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-danger {
+        background-color: #f84464 !important;
+    }
+    .text-danger {
+        color: #f84464 !important;
+    }
+    .btn-danger {
+        background-color: #f84464;
+        border-color: #f84464;
+    }
+    .btn-danger:hover {
+        background-color: #d82b4a;
+        border-color: #d82b4a;
+    }
+    .ticket-card {
+        border-left: 6px solid #f84464 !important;
+    }
+
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #ticketPrintArea, #ticketPrintArea * {
+            visibility: visible;
+        }
+        #ticketPrintArea {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        .btn, nav, footer {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}

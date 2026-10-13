@@ -1,188 +1,123 @@
-{% extends "users/basic.html" %} 
+{% extends "users/basic.html" %}
+
 {% block content %}
-<style>
-    /* Styling */
-    body {
-  font-family: Arial, sans-serif;
-  background-color: #f8f9fa;
-  color: #333;
-  margin: 0;
-  padding: 0;
-}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb bg-transparent p-0 mb-4">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'movie_list' %}">Movies</a></li>
+            <li class="breadcrumb-item active">{{ movie.name }} - Theatres</li>
+        </ol>
+    </nav>
 
-.container {
-  padding: 20px;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.movie-title {
-  font-size: 28px;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-/* Theatre Info Styling */
-.theatre-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  margin-bottom: 15px;
-  flex-wrap: wrap; /* Responsive wrapping */
-}
-
-.theatre-info strong {
-  font-size: 18px;
-  flex: 1;
-}
-
-/* Info Icons Styling */
-.info-icons {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 10px; /* Space between icons */
-  margin-top: 10px;
-  flex: 2;
-}
-
-.info-icons i {
-  margin-right: 5px;
-  font-size: 18px;
-}
-
-.info-section {
-  flex: 1;
-  text-align: right;
-}
-
-/* Show Times Styling */
-.show-times {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  flex-wrap: wrap; /* Responsive wrapping */
-}
-
-.time-box {
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 10px 20px;
-  text-align: center;
-  background-color: #f1f1f1;
-  margin-bottom: 10px;
-  flex: 1;
-  min-width: 100px;
-  transition: transform 0.3s ease, background-color 0.3s ease;
-}
-
-.time-box:hover {
-  transform: scale(1.05);
-  background-color: #28a745;
-  color: white;
-}
-
-.time-box span {
-  display: block;
-  font-size: 12px;
-  color: black;
-}
-.time-box span:hover {
-  color: white;
-}
-
-/* Non-Cancellable Styling */
-.non-cancellable {
-  color: #ffc107;
-  font-size: 12px;
-  margin-top: 20px;
-  display: flex;
-  align-items: center;
-}
-
-.non-cancellable i {
-  margin-right: 5px;
-}
-
-/* Responsive Styling */
-@media (max-width: 768px) {
-  .theatre-info {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .info-section {
-    text-align: left;
-    margin-top: 10px;
-  }
-
-  .show-times {
-    justify-content: space-between;
-  }
-
-  .time-box {
-    flex: 1 1 100%;
-    margin-bottom: 10px;
-  }
-}
-  </style>
-  
-  <body>
-    <div class="container">
-      <!-- Movie Title -->
-      <div class="movie-title">Movie - {{ movie.name }}</div>
-  
-      <!-- Conditional Check for Theaters -->
-      {% if theaters %}
-        <!-- Theater List and Showtimes -->
-        {% for theater in theaters %}
-        <div class="theatre-info">
-          <div>
-            <strong>{{ theater.name }} Theater</strong>
-            <div class="info-icons mt-2">
-              <i class="fas fa-mobile-alt text-success"></i> M-Ticket
-              <i class="fas fa-utensils text-warning ms-3"></i> Food & Beverage
-              <i class="fas fa-parking text-primary ms-3"></i> Parking Available
-              <i class="fas fa-wheelchair text-info ms-3"></i> Wheelchair Access
-              <i class="fas fa-glasses text-danger ms-3"></i> 3D Show Available
+    <!-- Movie Banner Header -->
+    <div class="card border-0 shadow-sm p-4 mb-4 bg-light">
+        <div class="d-flex flex-wrap align-items-center justify-content-between">
+            <div class="d-flex align-items-center mb-3 mb-md-0">
+                {% if movie.image %}
+                <img src="{{ movie.image.url }}" alt="{{ movie.name }}" class="rounded shadow-sm mr-3" style="width: 70px; height: 95px; object-fit: cover;">
+                {% endif %}
+                <div>
+                    <h2 class="font-weight-bold text-dark mb-1">{{ movie.name }}</h2>
+                    <p class="text-muted mb-0">
+                        <span class="badge badge-danger mr-2">{{ movie.genre|default:"Action" }}</span>
+                        <span class="badge badge-secondary mr-2">{{ movie.language|default:"English" }}</span>
+                        <i class="far fa-clock ml-2 mr-1"></i> {{ movie.duration|default:"120" }} mins
+                    </p>
+                </div>
             </div>
-          </div>
+            <div>
+                <a href="{% url 'movie_detail' movie.id %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-info-circle mr-1"></i> Movie Details
+                </a>
+            </div>
         </div>
-  
-        <div class="show-times">
-          <div class="time-box">
-            {{ theater.time }}
-            <a href="{% url 'book_seats' theater.id %}">
-              <span>Book Now</span>
-            </a>
-          </div>
-        </div>
-        {% endfor %}
-      {% else %}
-        <!-- Message when no theaters are available -->
-        <div class="no-theaters mt-4">
-          <p>Sorry, no theaters are available for this movie at the moment.</p>
-        </div>
-      {% endif %}
-  
-      <div class="non-cancellable mt-4">
-        <i class="fas fa-circle text-warning"></i> Non-cancellable
-      </div>
     </div>
-  </body>
-<!-- <h1>Theater for {{movie.name}}</h1>
-<ul>
-  {% for theater in theaters %}
-  <li>
-    <strong>{{theater.name}}</strong>{{theater.time}}
-    <a href="{% url 'book_seats' theater.id %}">View Seats</a>
-  </li>
-  {% endfor %}
-</ul> -->
+
+    <!-- Theatres List -->
+    <h4 class="font-weight-bold text-dark mb-3">
+        <i class="fas fa-film text-danger mr-2"></i> Select Theatre & Showtime
+    </h4>
+
+    {% if theaters %}
+        <div class="row">
+            {% for theater in theaters %}
+            <div class="col-lg-6 mb-4">
+                <div class="card border-0 shadow-sm h-100 theater-card">
+                    <div class="card-body p-4 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h5 class="font-weight-bold text-dark mb-1">{{ theater.name }}</h5>
+                                    <p class="text-muted small mb-0">
+                                        <i class="fas fa-map-marker-alt text-danger mr-1"></i> {{ theater.location|default:"Audi 1" }}
+                                    </p>
+                                </div>
+                                <span class="badge badge-success px-3 py-2 font-weight-normal">
+                                    ₹{{ theater.price }} / seat
+                                </span>
+                            </div>
+
+                            <div class="amenities my-3 text-muted small">
+                                <span class="mr-3"><i class="fas fa-mobile-alt text-success mr-1"></i> M-Ticket</span>
+                                <span class="mr-3"><i class="fas fa-utensils text-warning mr-1"></i> F&B</span>
+                                <span class="mr-3"><i class="fas fa-parking text-primary mr-1"></i> Parking</span>
+                                <span><i class="fas fa-wheelchair text-info mr-1"></i> Accessible</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-top d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-secondary d-block font-weight-bold">Showtime</small>
+                                <span class="font-weight-bold text-danger">
+                                    <i class="far fa-clock mr-1"></i> {{ theater.time|date:"M d, Y - h:i A" }}
+                                </span>
+                            </div>
+                            <a href="{% url 'book_seats' theater.id %}" class="btn btn-danger px-4 shadow-sm">
+                                Select Seats <i class="fas fa-chevron-right ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card border-0 bg-light p-5 text-center shadow-sm">
+            <i class="fas fa-video-slash fa-3x text-muted mb-3"></i>
+            <h5 class="text-secondary">No showtimes available for this movie right now.</h5>
+            <p class="text-muted">Please check other movies or visit again soon.</p>
+            <div>
+                <a href="{% url 'movie_list' %}" class="btn btn-outline-danger">Browse Other Movies</a>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="alert alert-light border mt-4 text-muted small">
+        <i class="fas fa-info-circle text-warning mr-1"></i> <strong>Cancellation Policy:</strong> Bookings can be cancelled from your profile dashboard prior to showtime. Standard terms apply.
+    </div>
+</div>
+
+<style>
+    .theater-card {
+        border-radius: 10px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .theater-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12) !important;
+    }
+    .badge-danger {
+        background-color: #f84464;
+    }
+    .btn-danger {
+        background-color: #f84464;
+        border-color: #f84464;
+    }
+    .btn-danger:hover {
+        background-color: #d82b4a;
+        border-color: #d82b4a;
+    }
+</style>
 {% endblock %}
